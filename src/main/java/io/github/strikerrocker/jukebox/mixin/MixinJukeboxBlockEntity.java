@@ -1,23 +1,22 @@
 package io.github.strikerrocker.jukebox.mixin;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.JukeboxBlock;
-import net.minecraft.block.entity.JukeboxBlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.MusicDiscItem;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.RecordItem;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.JukeboxBlock;
+import net.minecraft.world.level.block.entity.JukeboxBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(JukeboxBlockEntity.class)
-public class MixinJukeboxBlockEntity implements Inventory {
+public class MixinJukeboxBlockEntity implements Container {
     @Override
-    public int size() {
+    public int getContainerSize() {
         return 1;
     }
 
@@ -27,58 +26,58 @@ public class MixinJukeboxBlockEntity implements Inventory {
     }
 
     @Override
-    public ItemStack getStack(int slot) {
+    public ItemStack getItem(int slot) {
         return instance().getRecord();
     }
 
     @Override
-    public ItemStack removeStack(int slot, int amount) {
+    public ItemStack removeItem(int slot, int amount) {
         ItemStack stack = instance().getRecord();
-        instance().clear();
+        instance().clearContent();
         setPlayState(instance(), false);
-        instance().getWorld().syncWorldEvent(WorldEvents.MUSIC_DISC_PLAYED, instance().getPos(), Item.getRawId(Items.AIR));
+        instance().getLevel().levelEvent(1010, instance().getBlockPos(), Item.getId(Items.AIR));
         return stack;
     }
 
     @Override
-    public ItemStack removeStack(int slot) {
+    public ItemStack removeItemNoUpdate(int slot) {
         ItemStack stack = instance().getRecord();
-        instance().clear();
+        instance().clearContent();
         setPlayState(instance(), false);
-        instance().getWorld().syncWorldEvent(WorldEvents.MUSIC_DISC_PLAYED, instance().getPos(), Item.getRawId(Items.AIR));
+        instance().getLevel().levelEvent(1010, instance().getBlockPos(), Item.getId(Items.AIR));
         return stack;
     }
 
     @Override
-    public void setStack(int slot, ItemStack stack) {
-        if (stack.getItem() instanceof MusicDiscItem && isEmpty()) {
+    public void setItem(int slot, ItemStack stack) {
+        if (stack.getItem() instanceof RecordItem && isEmpty()) {
             instance().setRecord(stack);
             setPlayState(instance(), true);
-            instance().getWorld().syncWorldEvent(1010, instance().getPos(), Item.getRawId(stack.getItem()));
+            instance().getLevel().levelEvent(1010, instance().getBlockPos(), Item.getId(stack.getItem()));
         }
     }
 
     @Override
-    public void markDirty() {
-        World world = instance().getWorld();
-        BlockPos pos = instance().getPos();
-        BlockState state = instance().getCachedState();
+    public void setChanged() {
+        Level world = instance().getLevel();
+        BlockPos pos = instance().getBlockPos();
+        BlockState state = instance().getBlockState();
         if (world != null) {
-            world.markDirty(pos);
+            world.blockEntityChanged(pos);
             if (!state.isAir()) {
-                world.updateComparators(pos, state.getBlock());
+                world.updateNeighbourForOutputSignal(pos, state.getBlock());
             }
         }
     }
 
 
     @Override
-    public boolean canPlayerUse(PlayerEntity player) {
+    public boolean stillValid(Player player) {
         return false;
     }
 
     @Override
-    public void clear() {
+    public void clearContent() {
         instance().setRecord(ItemStack.EMPTY);
     }
 
@@ -87,9 +86,9 @@ public class MixinJukeboxBlockEntity implements Inventory {
     }
 
     private void setPlayState(JukeboxBlockEntity jukebox, boolean b) {
-        BlockState state = jukebox.getWorld().getBlockState(jukebox.getPos());
+        BlockState state = jukebox.getLevel().getBlockState(jukebox.getBlockPos());
         if (state.getBlock() instanceof JukeboxBlock) {
-            jukebox.getWorld().setBlockState(jukebox.getPos(), state.with(JukeboxBlock.HAS_RECORD, b), 1);
+            jukebox.getLevel().setBlock(jukebox.getBlockPos(), state.setValue(JukeboxBlock.HAS_RECORD, b), 1);
         }
     }
 }

@@ -15,16 +15,13 @@
   "icon": "assets/sbm-jukebox/icon.png",
   "environment": "*",
   "entrypoints": {
-    "main": [
-      "io.github.strikerrocker.jukebox.Jukebox"
-    ]
   },
   "mixins": [
     "modid.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.11.3",
-    "minecraft": "1.17.x",
-    "java": ">=16"
+    "fabricloader": ">=0.12.0",
+    "minecraft": "1.18.x",
+    "java": ">=17"
   }
 }
