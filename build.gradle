@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '0.10.+'
+	id 'fabric-loom' version '0.12.+'
 	id 'maven-publish'
 }
 
@@ -57,7 +57,7 @@ task setupGithubActions() {
 		}
 		if (rootProject.hasProperty('curse_relations')) {
 			exec {
-				commandLine "echo", "##[set-output name=curse_relations;]${project.curse_relations_fabric}"
+				commandLine "echo", "##[set-output name=curse_relations;]${project.curse_relations}"
 			}
 		}
 	}
