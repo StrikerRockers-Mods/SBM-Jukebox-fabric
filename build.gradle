@@ -1,11 +1,11 @@
 plugins {
-	id 'fabric-loom' version '0.12.+'
-	id 'maven-publish'
+    id 'fabric-loom' version '0.12.+'
+    id 'maven-publish'
 }
 
-sourceCompatibility =targetCompatibility= JavaVersion.VERSION_17
+sourceCompatibility = targetCompatibility = JavaVersion.VERSION_17
 
-archivesBaseName = project.mod_name + "-" + project.minecraft_version
+archivesBaseName = project.mod_name + "-fabric-" + project.minecraft_version
 version = project.mod_version
 group = project.maven_group
 
@@ -13,52 +13,41 @@ repositories {
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings loom.layered() {
-		officialMojangMappings()
-	}
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings loom.layered() {
+        officialMojangMappings()
+    }
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 }
 
 processResources {
-	inputs.property "version", project.version
-	filesMatching("fabric.mod.json") {
-		expand "version": project.version
-	}
+    inputs.property "version", project.version
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.encoding = "UTF-8"
-	it.options.release = 17
+    it.options.encoding = "UTF-8"
+    it.options.release = 17
 }
 
 jar {
-	from("LICENSE") {
-		rename { "${it}_${project.archivesBaseName}" }
-	}
+    from("LICENSE") {
+        rename { "${it}_${project.archivesBaseName}" }
+    }
 }
 
 task setupGithubActions() {
-	doLast {
-		exec {
-			commandLine "echo", "##[set-output name=version;]${project.mod_version}"
-		}
-		exec {
-			commandLine "echo", "##[set-output name=mod_name;]${project.mod_name}"
-		}
-		exec {
-			commandLine "echo", "##[set-output name=minecraft_version;]${project.minecraft_version}"
-		}
-		exec {
-			commandLine "echo", "##[set-output name=curse_project_id;]${project.curse_project_id}"
-		}
-		exec {
-			commandLine "echo", "##[set-output name=curse_versions;]${project.curse_versions}"
-		}
-		if (rootProject.hasProperty('curse_relations')) {
-			exec {
-				commandLine "echo", "##[set-output name=curse_relations;]${project.curse_relations}"
-			}
-		}
-	}
+    doLast {
+        exec {
+            commandLine "echo", "##[set-output name=version;]${project.mod_version}"
+        }
+        exec {
+            commandLine "echo", "##[set-output name=mod_name;]${project.mod_name}"
+        }
+        exec {
+            commandLine "echo", "##[set-output name=minecraft_version;]${project.minecraft_version}"
+        }
+    }
 }
